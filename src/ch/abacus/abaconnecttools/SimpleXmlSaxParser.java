@@ -272,7 +272,7 @@ public abstract class SimpleXmlSaxParser implements ContentHandler, ErrorHandler
 
     try {
 
-      // if the abasax parser makes some trobles caused by xerxes, set this property
+      // if the SimpleXmlSaxParser has problems caused by xerxes, set this property
 //      System.setProperty("javax.xml.parsers.SAXParserFactory", "org.apache.crimson.jaxp.SAXParserFactoryImpl");
 
 
