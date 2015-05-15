@@ -704,9 +704,9 @@ public class AcResponseFileReaderFrame extends JFrame {
 
     private JButton getButton() {
         JButton btn = new JButton();
-        btn.setMinimumSize(new Dimension(20,20));
-        btn.setMaximumSize(new Dimension(20,20));
-        btn.setPreferredSize(new Dimension(20,20));
+        btn.setMinimumSize(new Dimension(25,20));
+        btn.setMaximumSize(new Dimension(25,20));
+        btn.setPreferredSize(new Dimension(25,20));
         btn.setText("...");
         return btn;
     }
