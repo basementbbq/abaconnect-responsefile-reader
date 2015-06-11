@@ -299,7 +299,7 @@ public class AcResponseFileReaderFrame extends JFrame {
             }
         });
 
-        JLabel lblResponseLevel = getLabel(mResponseLevelCaption, 230);
+        JLabel lblResponseLevel = getLabel(mResponseLevelCaption, 250);
 
         m_cbxEchoMessageLevel = new JComboBox();
         m_cbxEchoMessageLevel.setMinimumSize(new Dimension(150,20));
@@ -312,23 +312,7 @@ public class AcResponseFileReaderFrame extends JFrame {
         // Default set to echo WARNING messages
         m_cbxEchoMessageLevel.setSelectedItem(AbaConnectResponseFileReader.ECHO_MESSAGE_LEVEL_WARNING);
         
-/*       
-        JLabel lblResponseMessageLevel = getLabel("Choose the Response Level of the messages that will be echoed :",-1);
-        m_rdbInformation = new JRadioButton("Information");
-        m_rdbWarning = new JRadioButton("Warning", true);
-        m_rdbError = new JRadioButton("Error");
-        ButtonGroup rdbGroup = new ButtonGroup();
-        rdbGroup.add(m_rdbInformation);
-        rdbGroup.add(m_rdbWarning);
-        rdbGroup.add(m_rdbError);
-
-        pnlLine.add(Box.createHorizontalStrut(10));
-        pnlLine.add(lblResponseLevel);
-        pnlLine.add(Box.createHorizontalStrut(20));
-        pnlLine.add(Box.createHorizontalGlue());
-        pnlLine.add(mBtnStart);
-*/
-        pnlLine.add(Box.createHorizontalStrut(150));
+        pnlLine.add(Box.createHorizontalStrut(200));
         pnlLine.add(Box.createHorizontalStrut(2));
         pnlLine.add(lblResponseLevel);
         pnlLine.add(Box.createHorizontalStrut(2));
@@ -339,67 +323,6 @@ public class AcResponseFileReaderFrame extends JFrame {
         pnlMain.add(Box.createVerticalStrut(3));
         pnlMain.add(pnlLine);
 
-//        pnlMain.add(Box.createVerticalStrut(3));
-/*
-        // Options Panel
-        int heightOptionPanel = 72;
-        JPanel pnlOptionsPanel = new JPanel();
-        //pnlOptionsPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE,1));
-        pnlOptionsPanel.setLayout(new BoxLayout(pnlOptionsPanel,BoxLayout.LINE_AXIS));
-        pnlOptionsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Could add further options in a right option panel
-//        JPanel pnlOptionsRightPanel = new JPanel();
-//        pnlOptionsRightPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN, 1));
-//        pnlOptionsRightPanel.setLayout(new BoxLayout(pnlOptionsRightPanel, BoxLayout.PAGE_AXIS));
-//        pnlOptionsRightPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-
-        JPanel pnlOptionsLeftPanel = new JPanel();
-        //pnlOptionsLeftPanel.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 1));
-        pnlOptionsLeftPanel.setLayout(new BoxLayout(pnlOptionsLeftPanel, BoxLayout.PAGE_AXIS));
-        pnlOptionsLeftPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        //pnlOptionsPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-        pnlOptionsLeftPanel.setMinimumSize(new Dimension(10, heightOptionPanel));
-        pnlOptionsLeftPanel.setMaximumSize(new Dimension(9999, heightOptionPanel));
-        pnlOptionsLeftPanel.setPreferredSize(new Dimension(600, heightOptionPanel));
-
-        JPanel pnlPropertyChangesLine = creatLinePanel();
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(m_rdbInformation);
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(Box.createHorizontalGlue());
-
-        pnlOptionsLeftPanel.add(Box.createVerticalStrut(3));
-        pnlOptionsLeftPanel.add(pnlPropertyChangesLine);
-
-        // ---------- Warning Radio Option -----------
-        pnlPropertyChangesLine = creatLinePanel();
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(m_rdbWarning);
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(Box.createHorizontalGlue());
-
-        pnlOptionsLeftPanel.add(Box.createVerticalStrut(3));
-        pnlOptionsLeftPanel.add(pnlPropertyChangesLine);
-
-        // ---------- Error Radio Option -----------
-        pnlPropertyChangesLine = creatLinePanel();
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(m_rdbError);
-        pnlPropertyChangesLine.add(Box.createHorizontalStrut(10));
-        pnlPropertyChangesLine.add(Box.createHorizontalGlue());
-
-        pnlOptionsLeftPanel.add(Box.createVerticalStrut(3));
-        pnlOptionsLeftPanel.add(pnlPropertyChangesLine);
-
-        pnlOptionsPanel.add(pnlOptionsLeftPanel);
-//        pnlOptionsPanel.add(pnlOptionsRightPanel);
-
-        // - Add the options panel -
-        pnlMain.add(Box.createVerticalStrut(3));
-        pnlMain.add(pnlOptionsPanel);
-*/
         pnlMain.add(Box.createVerticalStrut(3));
 
         // Information Text Box
@@ -620,7 +543,7 @@ public class AcResponseFileReaderFrame extends JFrame {
     }
 
     private JLabel getLabel(String caption) {
-        return getLabel(caption, 150);
+        return getLabel(caption, 200);
     }
 
     private JLabel getLabel(String caption, int width) {
