@@ -184,8 +184,6 @@ public class AbaConnectXmlFileReader  extends SimpleXmlSaxParser {
                     mBufferedOutputStream = new BufferedOutputStream(new FileOutputStream(mXmlOutputFileName));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
             if ( mBufferedOutputStream != null &&  text != null ) {
