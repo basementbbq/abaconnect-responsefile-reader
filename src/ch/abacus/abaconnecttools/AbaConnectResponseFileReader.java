@@ -767,7 +767,7 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
             out = new PrintWriter(new OutputStreamWriter(System.out, codepage));
 
             /* Output the text to the DOS Window Console */
-//            out.println("Test mit deutschen Spezialzeichen: äöü ÄÖÜ ß");
+//            out.println("Test mit deutschen Spezialzeichen:  Ã¤Ã¶Ã¼ Ã„Ã–Ãœ ÃŸ");
             out.println(text);
 
             /* Use flush to show the stream contents in the DOS Window Console */
