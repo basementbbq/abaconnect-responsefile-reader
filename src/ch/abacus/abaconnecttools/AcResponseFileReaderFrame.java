@@ -1,5 +1,5 @@
 /*
- * CompareTwoFilesFrame.java
+ * AcResponseFileReaderFrame.java
  *
  * Creator:
  * 05.01.11 10:00 Sippel
@@ -8,7 +8,7 @@
  * 05.01.11 10:00 Sippel
  *
  * Last Modification:
- * $Id: CompareTwoFilesFrame.java 25459 2012-05-11 07:47:24Z sippel $
+ * $Id: AcResponseFileReaderFrame.java 25459 2012-05-11 07:47:24Z sippel $
  *
  * Copyright (c) 2003 ABACUS Research AG, All Rights Reserved
  */
@@ -286,14 +286,13 @@ public class AcResponseFileReaderFrame extends JFrame {
         pnlMain.add(Box.createVerticalStrut(3));
         pnlMain.add(getFileInputLine(getLabel(mFilename2Caption), m_txfFileName2, btnFile2Select, null));
 
-        int fixedCheckBoxWidth = 300;
         JPanel pnlLine = creatLinePanel();
 
         mBtnStart = new JButton();
         mBtnStart.setMinimumSize(new Dimension(150,20));
         mBtnStart.setMaximumSize(new Dimension(150, 20));
         mBtnStart.setPreferredSize(new Dimension(150, 20));
-        mBtnStart.setText("Start");
+        mBtnStart.setText(mStartButtonCaption);
         mBtnStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 action_Start();
