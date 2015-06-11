@@ -17,7 +17,11 @@ package ch.abacus.abaconnecttools;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -25,6 +29,7 @@ import java.util.HashMap;
 public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
 
     private String mXmlFileName = "";
+    private boolean mResponseFileRootTagDetected = false;
     private boolean mInInformationBlock = false;
     private boolean mInStatisticBlock = false;
     private boolean mInTaskStatisticBlock = false;
@@ -58,9 +63,19 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
     private StringBuffer mGeneralMessages = new StringBuffer();
     private StringBuffer mEchoedMessages = new StringBuffer();
 
+    private ArrayList<String> mXmlResponseFileName = new ArrayList<String>();   // Name of AbaConnect Response file (e.g. from Import)
+    private String mXmlGeneratedErrorImportFileName = "";                       // Name of generated AbaConnect Input File with Error Transactions
+    private boolean mShowInformation = false;
+    private boolean mShowWarnings = false;
+    private boolean mShowErrors = true;
+
+    static String ECHO_MESSAGE_LEVEL_INFO = "Information";
+    static String ECHO_MESSAGE_LEVEL_WARNING = "Warning";
+    static String ECHO_MESSAGE_LEVEL_ERROR = "Error";
+
     @Override
     public void endElement(String name, String value) {
-        if ( "Information".equals(name) ) {
+        if ( ECHO_MESSAGE_LEVEL_INFO.equals(name) ) {
             mInInformationBlock = false;
         }
         if ( "Statistic".equals(name) ) {
@@ -80,7 +95,7 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         }
         if ( "Transaction".equals(name) ) {
             mInTransactionBlock = false;
-            if ( mTransactionIndex >= 0 && "error".equalsIgnoreCase(mTransactionResponseState) ) {
+            if ( mTransactionIndex >= 0 && ECHO_MESSAGE_LEVEL_ERROR.equalsIgnoreCase(mTransactionResponseState) ) {
 //                System.out.println("             Transaction Index[" + mTransactionIndex + "] : State[" + mTransactionResponseState + "]");
                 mErrorTransactionIndexesAndMessages.put(mTransactionIndex,mTransactionMessages.toString());
 
@@ -89,19 +104,19 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         }
         if ( mInStatisticBlock ) {
             if ( mInTaskStatisticBlock ) {
-                if ( "Information".equals(name) ) {
+                if ( ECHO_MESSAGE_LEVEL_INFO.equals(name) ) {
                     mTaskInformationMessageCount = (int)convertTextToLong(value,-1);
-                } else if ( "Warning".equals(name) ) {
+                } else if ( ECHO_MESSAGE_LEVEL_WARNING.equals(name) ) {
                     mTaskWarningMessageCount = (int)convertTextToLong(value,-1);
-                } else if ( "Error".equals(name) ) {
+                } else if ( ECHO_MESSAGE_LEVEL_ERROR.equals(name) ) {
                     mTaskErrorMessageCount = (int)convertTextToLong(value,-1);
                 }
             } else if ( mInTransactionStatisticBlock ) {
-                if ( "Information".equals(name) ) {
+                if ( ECHO_MESSAGE_LEVEL_INFO.equals(name) ) {
                     mTransactionInformationMessageCount = (int)convertTextToLong(value,-1);
-                } else if ( "Warning".equals(name) ) {
+                } else if ( ECHO_MESSAGE_LEVEL_WARNING.equals(name) ) {
                     mTransactionWarningMessageCount = (int)convertTextToLong(value,-1);
-                } else if ( "Error".equals(name) ) {
+                } else if ( ECHO_MESSAGE_LEVEL_ERROR.equals(name) ) {
                     mTransactionErrorMessageCount = (int)convertTextToLong(value,-1);
                 }
             }
@@ -136,27 +151,13 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         }
     }
 
-    private String getTransactionStatusMessagePrefix() {
-        String transactionText;
-        if ( mTransactionIndex >= 0 ) {
-            transactionText = "Transaction[" + mTransactionIndex + "] : ";
-        } else {
-            transactionText = "General Message : ";
-        }
-        return transactionText;
-    }
-
-    private boolean isMessageStatusLogging() {
-        if ( StringIsNullOrEmpty(mLastMessageStatus) ) return true;
-        if (  mLastMessageStatus.toLowerCase().contains("info") && mShowInformationMessages ) return true;
-        if (  mLastMessageStatus.toLowerCase().contains("warn") && mShowWarningMessages ) return true;
-        return ( mLastMessageStatus.toLowerCase().contains("error") && mShowErrorMessages);
-    }
-
     @Override
     public void startElement(String elementName, Attributes atts) {
+        if ( "AbaResponse".equals(elementName) ) {
+            mResponseFileRootTagDetected = true;
+        }
         elementValue.reset();
-        if ( "Information".equals(elementName) ) {
+        if ( ECHO_MESSAGE_LEVEL_INFO.equals(elementName) ) {
             mInInformationBlock = true;
         }
         if ( "Statistic".equals(elementName) ) {
@@ -256,6 +257,97 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         super.saxParse(filename);
     }
 
+    public boolean isShowErrors() {
+        return mShowErrors;
+    }
+
+    public void setShowErrors(boolean showErrors) {
+        mShowErrors = showErrors;
+    }
+
+    public boolean isShowInformation() {
+        return mShowInformation;
+    }
+
+    public void setShowInformation(boolean showInformation) {
+        mShowInformation = showInformation;
+    }
+
+    public String getXmlGeneratedErrorImportFileName() {
+        return mXmlGeneratedErrorImportFileName;
+    }
+
+    public void setXmlGeneratedErrorImportFileName(String xmlGeneratedErrorImportFileName) {
+        mXmlGeneratedErrorImportFileName = xmlGeneratedErrorImportFileName;
+    }
+
+    public ArrayList<String> getXmlResponseFileName() {
+        return mXmlResponseFileName;
+    }
+
+    public void addXmlResponseFileName(String xmlResponseFileName) {
+        mXmlResponseFileName.add(xmlResponseFileName);
+    }
+
+    public boolean isValidResponseFileDetected() {
+        return mResponseFileRootTagDetected;
+    }
+
+    public boolean isShowWarnings() {
+        return mShowWarnings;
+    }
+
+    public void setShowWarnings(boolean showWarnings) {
+        mShowWarnings = showWarnings;
+    }
+    
+    public void extractCommandlineParameters(String[] args) {
+        if ( args != null  &&  args.length > 0 ) {
+            for (String arg : args) {
+                if ( arg.toLowerCase().startsWith("-outputfile") || arg.toLowerCase().startsWith("/outputfile") ) {
+                    mXmlGeneratedErrorImportFileName = arg.substring(11);
+                } else if ( arg.toLowerCase().endsWith(".xml")) {
+                    mXmlResponseFileName.add(arg);
+                }
+                if ( (arg.toLowerCase().startsWith("-echo") || arg.toLowerCase().startsWith("/echo")) ) {
+                    String echoParam = arg.substring(5);
+                    if ( !StringIsNullOrEmpty(echoParam) ) {
+                        setShowErrors(true);
+                        if ( echoParam.toLowerCase().contains("info") ) {
+                            setShowInformation(true);
+                            setShowWarnings(true);
+                        } else if ( echoParam.toLowerCase().contains("warn") ) {
+                            setShowInformation(false);
+                            setShowWarnings(true);
+                        } else {
+                            setShowInformation(false);
+                            setShowWarnings(false);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    
+    private String getTransactionStatusMessagePrefix() {
+        String transactionText;
+        if ( mTransactionIndex >= 0 ) {
+            transactionText = "Transaction[" + mTransactionIndex + "] : ";
+        } else {
+            transactionText = "General Message : ";
+        }
+        return transactionText;
+    }
+
+    private boolean isMessageStatusLogging() {
+        if ( StringIsNullOrEmpty(mLastMessageStatus) ) return true;
+        if (  mLastMessageStatus.toLowerCase().contains("info") && mShowInformationMessages ) return true;
+        if (  mLastMessageStatus.toLowerCase().contains("warn") && mShowWarningMessages ) return true;
+        return ( mLastMessageStatus.toLowerCase().contains("error") && mShowErrorMessages);
+    }
+    
     public int getTaskBlockCount() {
         return mTaskBlockIndex < 0 ? 0 : (mTaskBlockIndex + 1);
     }
@@ -309,6 +401,7 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         mShowErrorMessages = showErrorMessages;
     }
 
+    
 //    public int[] getErrorTransactionIndexes() {
 //        int[] errorTransactionIndexes = new int[mErrorTransactionIndexesAndMessages.size()];
 //        int index = 0;
@@ -395,14 +488,26 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         String responseFileName = "";
         String echoParams = "";
 
-        String erroneousTransactionOutputFilename = "";
+        AbaConnectResponseFileReader acResponseReader = new AbaConnectResponseFileReader();
+
+        acResponseReader.extractCommandlineParameters(args);
+
+        ArrayList<String> responseFileList = acResponseReader.getXmlResponseFileName();
+        if ( responseFileList != null ) {
+            if ( responseFileList.size() > 0 ) {
+                responseFileName = responseFileList.get(responseFileList.size()-1);
+            }
+        }
+
+        String erroneousTransactionOutputFilename = acResponseReader.getXmlGeneratedErrorImportFileName();
+
         if ( args != null  &&  args.length > 0 ) {
             for (String arg : args) {
-                if ( !StringIsNullOrEmpty(responseFileName) && StringIsNullOrEmpty(erroneousTransactionOutputFilename) ) {
-                    erroneousTransactionOutputFilename = arg;
-                }
                 if ( StringIsNullOrEmpty(responseFileName) && arg.toLowerCase().endsWith(".xml")) {
                     responseFileName = arg;
+                }
+                if ( StringIsNullOrEmpty(erroneousTransactionOutputFilename) && (arg.toLowerCase().startsWith("-outputfile") || arg.toLowerCase().startsWith("/outputfile")) ) {
+                    erroneousTransactionOutputFilename = arg.substring(11);
                 }
                 if ( StringIsNullOrEmpty(echoParams) && (arg.toLowerCase().startsWith("-echo") || arg.toLowerCase().startsWith("/echo")) ) {
                     echoParams = arg;
@@ -410,53 +515,25 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
             }
         }
 
-        String xmlFileName = "";
-        ArrayList<String> responseFileList = new ArrayList<String>();
-
         if ( !StringIsNullOrEmpty(responseFileName) ) {
-            if ( new File(responseFileName).exists() ) {
-                responseFileList.add(responseFileName);
-            } else {
+            if ( ! new File(responseFileName).exists() ) {
                 System.out.println("");
                 System.out.println("Error : Specified response file name cannot be found.");
                 System.out.println("       " + responseFileName);
             }
         }
         if ( responseFileList.size() < 1 ) {
-            System.out.println("");
-            System.out.println("Usage : ");
-            System.out.println("   java -cp ac_utilities.jar -Xms128m -Xmx384m ch.abacus.abaconnecttools.AbaConnectResponseFileReader [-echoINFO-WARN-ERROR] <response-filename> <error-result-filename>");
-            System.out.println("Where : ");
-            System.out.println("   <response-filename>     - is AbaConnect response file");
-            System.out.println("   <error-result-filename> - is result file with erroneous transactions");
-            System.out.println("   -echo                   - an optional parameter. Echoes Message types INFO-WARN-ERROR to DOS Window.  ERROR messages will always be shown.");
+            System.out.println(acResponseReader.getCommandlineUsage());
 
 //        java -cp ac_utilities.jar -Xms128m -Xmx384m ch.abacus.abaconnecttools.AbaConnectResponseFileReader d:\test\debi\BatchFiles\DEBI_Import_Customer_m7777_Result.xml
             return;
         }
 
-        // Testing for
-        if ( responseFileList.size() < 1 ) {
-            responseFileList.add("d:\\test\\debi\\BatchFiles\\DEBI_Import_Customer_m7777_Result.xml");
-        }
-
-        boolean showInformation = false;
-        boolean showWarnings = true;
-        boolean showErrors = true;
-        if ( !StringIsNullOrEmpty(echoParams) ) {
-            if ( echoParams.toLowerCase().contains("info") ) {
-                showInformation = true;
-            } else {
-                showInformation = false;
-            }
-            if ( echoParams.toLowerCase().contains("warn") ) {
-                showWarnings = true;
-            } else {
-                showWarnings = false;
-            }
-        }
-
-        String outputPath = "";
+        boolean showInformation = acResponseReader.isShowInformation();
+        boolean showWarnings = acResponseReader.isShowWarnings();
+        boolean showErrors = acResponseReader.isShowErrors();
+        
+         String outputPath = "";
         // Normally there is only one file being processed when started from commandline
         // For testing purposes there can be more files to process.
         int totalErrorCount = 0;
@@ -491,6 +568,29 @@ public class AbaConnectResponseFileReader extends SimpleXmlSaxParser {
         } catch (Exception allex) {
             allex.printStackTrace();
         }
+   
+    }
+
+    static public String getCommandlineUsage() {
+        String lineFeed = "\n";
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("");
+        sb.append(lineFeed);
+        sb.append("Usage : ");
+        sb.append(lineFeed);
+        sb.append("   java -cp ac_utilities.jar -Xms128m -Xmx384m ch.abacus.abaconnecttools.AbaConnectResponseFileReader [-echoINFO-WARN-ERROR] <response-filename> <error-result-filename>");
+        sb.append(lineFeed);
+        sb.append("Where : ");
+        sb.append(lineFeed);
+        sb.append("   <response-filename>     - is AbaConnect response file<error-result-filename>");
+        sb.append(lineFeed);
+        sb.append("   <error-result-filename> - is result file with erroneous transactions");
+        sb.append(lineFeed);
+        sb.append("   -echo                   - an optional parameter. Echoes Message types INFO-WARN-ERROR to DOS Window.  ERROR messages will always be shown.");
+//        sb.append(lineFeed);
+        return sb.toString();
+
     }
 
     static public int processResponseFile(String xmlResponseFilename, String erroneousTransactionOutputFilename, boolean showInformation, boolean showWarnings, boolean showErrors ) {
