@@ -21,7 +21,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
-import java.io.File;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,7 +38,6 @@ public class AcResponseFileReaderFrame extends JFrame {
     };
 
     private String mTitleBarCaption = "AbaConnect Response File Reader";
-    private String mProgramVersion = "JA-2015.06";
     private String mStartButtonCaption = "Start";
 
     private String mFilename1Caption = "Response XML File :";
@@ -356,7 +355,7 @@ public class AcResponseFileReaderFrame extends JFrame {
             rootPane.add(pnlMain);
         }
 
-        setTitle(mTitleBarCaption + " - Version : " + mProgramVersion);
+        setTitle(mTitleBarCaption + " - Version : " + getCurrentProgramVersionInfo());
 
         // Destroy the window when window closes
         addWindowListener(new WindowAdapter() {
@@ -678,5 +677,51 @@ public class AcResponseFileReaderFrame extends JFrame {
         return number;
     }
 
+    /**
+     * Read a version string from a resource Text file.  Used for display in the Title
+     * bar of some applications.
+     *
+     * If resource file is not found then just returns the hardcoded version string.
+     *
+     * @return returns a version string e.g. "14.05"
+     */
+    public static String getCurrentProgramVersionInfo() {
+        String versionText = "V15.08";
+        String versionFilename = "version.txt";
+        URL versionUrl = AcResponseFileReaderFrame.class.getResource(versionFilename);
+        InputStream versionInputStream = null;
+        if ( versionUrl != null ) {
+            try {
+                versionInputStream = versionUrl.openStream();
+                int count;
+                int bufferSize = 256;
+                byte data[] = new byte[bufferSize];
+                while ((count = versionInputStream.read(data, 0, bufferSize)) != -1) {
+                    String value = new String(data,0,count);
+                    if ( value != null && !"".equals(value) ) {
+                        int iPos = value.indexOf("\n");
+                        if ( iPos > 0 ) {
+                            value = value.substring(0, iPos).trim();
+                        }
+                        iPos = value.indexOf("\r");
+                        if ( iPos > 0 ) {
+                            value = value.substring(0, iPos).trim();
+                        }
+                        iPos = value.indexOf(".");
+                        if ( iPos == 4 ) {
+                            versionText = "V" + value.substring(2).trim();
+                        } else if ( iPos > 0 ) {
+                            versionText = "V" + value.trim();
+                        }
+                    }
+                }
+                versionInputStream.close();
+            } catch ( Exception ce ) {
+                ce.printStackTrace();
+                return versionText; // Version cannot be loaded
+            }
+        }
+        return versionText;
+    }
 
 }

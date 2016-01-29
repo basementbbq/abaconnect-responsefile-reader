@@ -1,0 +1,72 @@
+<project name="ac_responsefile_reader_app" basedir="." default="main">
+
+    <!-- Java Source files location - normally src subdirectory -->
+    <property name="src.dir"     value="../src"/>
+
+    <!-- NAme of the intitial Java Start Class -->
+    <property name="main-class"  value="ch.abacus.abaconnecttools.AcResponseFileReaderFrame"/>
+
+    <!-- Additional JARS location - normally jars subdirectory -->
+    <property name="base.jars.dir"     value="jars"/>
+
+    <!-- Define class path beneath the JARS directory -->
+    <path id="classpath">
+       <!--  <fileset dir="${base.jars.dir}" includes="**/*.jar"/>  -->
+    </path>
+
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+
+    <!-- Define the name of the resulting JAR file -->
+    <!--     <property name="targetJarFile"     value="${jar.dir}/${ant.project.name}.jar"/>  -->
+    <property name="targetJarFile"     value="${ant.project.name}.jar"/>
+
+    <echo message = "java version = ${java.version}"/>
+
+    <tstamp>
+        <format property="PROGRAM_VERSION_TIMESTAMP" pattern="yyyy.MM" />
+    </tstamp>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete file="${targetJarFile}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath">
+            <include name="ch/abacus/abaconnecttools/**/*"/>
+        </javac>
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}" excludes="**/*.java"/>
+        </copy>
+        <echo file="${classes.dir}/ch/abacus/abaconnecttools/version.txt">${PROGRAM_VERSION_TIMESTAMP}</echo>
+
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${targetJarFile}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="jar">
+        <java fork="true" classname="${main-class}">
+          <classpath>
+             <path refid="classpath"/>
+             <path location="${targetJarFile}"/>
+          </classpath>
+        </java>
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="clean-build" depends="clean,jar"/>
+
+    <target name="main" depends="clean,run"/>
+
+
+</project>
